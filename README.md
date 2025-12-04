@@ -145,7 +145,7 @@ Known limitations
 - Supported node types are limited to Start/Task/End.
 
 License
-MIT (adjust as needed).
+MIT.
 
 CI (GitHub Actions)
 - A workflow is provided at .github/workflows/ci.yml that runs on push and pull requests:
@@ -154,9 +154,3 @@ CI (GitHub Actions)
   - npm run typecheck
   - npm run test
   - npm run build:wc
-- Using different Git credentials in CI (no reliance on global config):
-  - The workflow sets a local git author/email (workflow-editor-ci-bot@users.noreply.github.com).
-  - For any authenticated operations (optional), it uses a dedicated repository secret CI_GITHUB_TOKEN and rewrites the origin URL to https://x-access-token:<token>@github.com/<owner>/<repo>.git so it does not depend on runner/global credentials.
-- Optional push-back step:
-  - Disabled by default. To enable, set a repository secret CI_GITHUB_TOKEN (scopes: repo) and add a workflow variable DO_PUSH=true (or set it in the workflow dispatch).
-  - The step commits and pushes only if there are actual changes. It is safe to keep it off if not needed.
