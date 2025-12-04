@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+# Husky pre-push hook: run build-and-test before allowing push
+
+# Source Husky helper if available (created during `npm install` via `prepare` script)
+if [ -f "$(dirname -- "$0")/_/husky.sh" ]; then
+  . "$(dirname -- "$0")/_/husky.sh"
+fi
+
+echo "[husky] pre-push: running lint, typecheck, tests, and web-component build..."
+
+# Run the project gate. If it fails, reject the push (non-zero exit)
+npm run build-and-test
