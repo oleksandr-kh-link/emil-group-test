@@ -10,8 +10,8 @@ Features (v1)
 - Packaging: ES and IIFE bundles for <workflow-editor>
 
 Constraints
-- No zoom; no history/undo.
-- Obstacle-aware routing; edges only touch nodes at endpoints; small arrowheads.
+- No zoom.
+- Obstacle-aware routing can be improved.
 
 Quick Start (development)
 - npm install
@@ -25,9 +25,7 @@ Outputs under dist/:
 - workflow-editor.iife.js (self-registering global bundle)
 
 Serve the repo statically and open the examples
-- npx serve .
-- http://localhost:3000/examples/iife.html
-- http://localhost:3000/examples/es-module.html
+- npm run serve:examples (builds fresh bundles, serves on port 5500, and opens examples/es-module.html)
 
 Web Component Usage
 IIFE (drop-in)
@@ -109,13 +107,6 @@ Theming
   - `$bg`, `$panel`, `$text`, `$accent` (focus/selection color).
 - Since styles are injected into the Shadow DOM, host pages won’t affect internal styles. To customize, re-build with modified SCSS variables or expose CSS custom properties in a future iteration.
 
-TypeScript host declaration (optional)
-declare global {
-  interface HTMLElementTagNameMap {
-    'workflow-editor': HTMLElement;
-  }
-}
-
 JSON format
 - One bpmn:Process inside definitions.rootElements; nodes include inline x/y; edges reference node ids.
 - Nodes: $type ∈ bpmn:StartEvent | bpmn:UserTask | bpmn:EndEvent, with id, name?, x, y.
@@ -125,7 +116,21 @@ Invalid payloads cause setJSON to emit an error event with validation details.
 Development
 - Lint: npm run lint (Google style via ESLint v9 flat config)
 - Type-check: npm run typecheck
-- Tests: npm run test (Vitest + Testing Library)
+- Unit/Component tests: npm run test (Vitest + Testing Library)
+
+End-to-End testing (Playwright)
+- Install browsers (one-time): npm run e2e:install
+- Run headless E2E tests: npm run test:e2e
+- Run headed (with visible browsers): npm run test:e2e:headed
+
+Notes
+- The Playwright config (playwright.config.ts) builds the Web Component bundles and serves the repo during tests using:
+  - command: npm run build:wc && npx serve . -l 5501
+  - baseURL: http://localhost:5501
+- E2E specs target examples/es-module.html and interact with controls inside the component’s Shadow DOM. We use the Playwright shadow-piercing selector syntax >>>, e.g. wc.locator('>>> button:has-text("+ Task")').
+- Typical flows covered:
+  - Ready/change events, add/delete Task via toolbar, JSON assertions via getJSON().
+  - Add two Tasks and connect them via the connect handle → node click; assert edge count via getJSON().
 
 Folder structure
 - src/editor/: editor module
@@ -140,7 +145,7 @@ Folder structure
 - examples/ — IIFE & ES module usage examples
 
 Known limitations
-- No zoom or undo/redo.
+- No zoom.
 - Minimal routing; may produce longer detours with dense obstacles.
 - Supported node types are limited to Start/Task/End.
 

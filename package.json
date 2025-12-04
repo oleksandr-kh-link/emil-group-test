@@ -14,8 +14,12 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "e2e:install": "playwright install --with-deps",
     "build-and-test": "npm run lint && npm run typecheck && npm run test && npm run build:wc",
-    "prepare": "husky"
+    "prepare": "husky",
+    "serve:examples": "npm run build:wc && (sleep 1; open http://localhost:5500/examples/es-module.html) & npx serve . -l 5500"
   },
   "vitest": {
     "environment": "jsdom",
@@ -30,6 +34,7 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
     "husky": "^9.0.11",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
