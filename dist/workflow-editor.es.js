@@ -6017,7 +6017,11 @@ function dy({ show: e, text: t, onClose: n }) {
   ) : null;
 }
 const py = z.memo(dy);
-function hy({ show: e, initialText: t = "", onImport: n, onClose: r }) {
+function hy() {
+  return /* @__PURE__ */ E.jsx("pattern", { id: "grid", width: 20, height: 20, patternUnits: "userSpaceOnUse", children: /* @__PURE__ */ E.jsx("path", { d: "M 20 0 L 0 0 0 20", fill: "none", stroke: "rgba(255,255,255,0.06)", strokeWidth: "1" }) });
+}
+const yy = z.memo(hy);
+function my({ show: e, initialText: t = "", onImport: n, onClose: r }) {
   const [l, o] = z.useState(t), i = z.useRef(null);
   return z.useEffect(() => {
     e && (o(t), setTimeout(() => {
@@ -6093,10 +6097,6 @@ function hy({ show: e, initialText: t = "", onImport: n, onClose: r }) {
       )
     }
   ) : null;
-}
-const yy = z.memo(hy);
-function my() {
-  return /* @__PURE__ */ E.jsx("pattern", { id: "grid", width: 20, height: 20, patternUnits: "userSpaceOnUse", children: /* @__PURE__ */ E.jsx("path", { d: "M 20 0 L 0 0 0 20", fill: "none", stroke: "rgba(255,255,255,0.06)", strokeWidth: "1" }) });
 }
 const vy = z.memo(my);
 function b(e) {
@@ -7758,7 +7758,7 @@ function zm() {
         onMouseUp: f,
         onClick: w,
         children: [
-          /* @__PURE__ */ E.jsx(vy, {}),
+          /* @__PURE__ */ E.jsx(yy, {}),
           n.map((d) => /* @__PURE__ */ E.jsx(Cm, { edge: d, nodes: v }, d.id)),
           t.map((d) => /* @__PURE__ */ E.jsx(Rm, { node: d }, d.id))
         ]
@@ -7766,7 +7766,7 @@ function zm() {
     ),
     /* @__PURE__ */ E.jsx(py, { show: r, text: o, onClose: () => l(!1) }),
     /* @__PURE__ */ E.jsx(
-      yy,
+      vy,
       {
         show: u,
         initialText: a,
