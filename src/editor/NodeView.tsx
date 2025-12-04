@@ -81,7 +81,7 @@ function NodeViewImpl({node}: Props) {
       {/* label */}
       {node.type === 'task' && !isEditing && (
         <text x={positionX + width / 2} y={positionY + height / 2 + 5} textAnchor="middle" fontSize={14} onDoubleClick={handleLabelDoubleClick}
-          style={{userSelect: 'none', pointerEvents: 'auto'}}>
+          fill="#ffffff" style={{userSelect: 'none', pointerEvents: 'auto'}}>
           {node.label ?? 'Task'}
         </text>
       )}
