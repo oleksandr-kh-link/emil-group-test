@@ -31,13 +31,13 @@ function EdgeViewImpl({edge, nodes}: Props) {
 
   // Build obstacle list excluding the source and target (memoized per render frame)
   const obstacles: Obstacle[] = useMemo(() => {
-    const out: Obstacle[] = [];
+    const obstacleList: Obstacle[] = [];
     for (const nodeItem of Object.values(nodes)) {
       if (!nodeItem) continue;
       if (nodeItem.id === sourceNode.id || nodeItem.id === targetNode.id) continue;
       const nodeBounds = getNodeBounds(nodeItem);
       if (nodeItem.type === 'task') {
-        out.push({
+        obstacleList.push({
           kind: 'rect',
           x: nodeBounds.x - obstaclePadding,
           y: nodeBounds.y - obstaclePadding,
@@ -45,7 +45,7 @@ function EdgeViewImpl({edge, nodes}: Props) {
           h: nodeBounds.h + obstaclePadding * 2,
         });
       } else {
-        out.push({
+        obstacleList.push({
           kind: 'circle',
           cx: nodeItem.position.x + 24,
           cy: nodeItem.position.y + 24,
@@ -53,7 +53,7 @@ function EdgeViewImpl({edge, nodes}: Props) {
         });
       }
     }
-    return out;
+    return obstacleList;
   }, [nodes, sourceNode.id, targetNode.id, obstaclePadding]);
 
   const edgePathPoints = route(sourceAnchorPoint, targetAnchorPoint, obstacles);

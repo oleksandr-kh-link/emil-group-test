@@ -1,12 +1,12 @@
 import {useEffect} from 'react';
 
 function isEditableTarget(target: EventTarget | null): boolean {
-  const el = target as HTMLElement | null;
-  if (!el) return false;
-  const tag = el.tagName?.toLowerCase();
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
-  if (el.isContentEditable) return true;
-  if (typeof el.closest === 'function' && el.closest('[contenteditable="true"]')) return true;
+  const element = target as HTMLElement | null;
+  if (!element) return false;
+  const tagNameLower = element.tagName?.toLowerCase();
+  if (tagNameLower === 'input' || tagNameLower === 'textarea' || tagNameLower === 'select') return true;
+  if (element.isContentEditable) return true;
+  if (typeof element.closest === 'function' && element.closest('[contenteditable="true"]')) return true;
   return false;
 }
 

@@ -29,18 +29,18 @@ import type {RootState} from '../store';
 
 export default function Editor() {
   const dispatch = useDispatch();
-  const nodes = useSelector((s: RootState) => s.diagram.nodes);
-  const edges = useSelector((s: RootState) => s.diagram.edges);
-  const canUndo = useSelector((s: RootState) => (s.diagram as any).history?.past.length > 0);
-  const canRedo = useSelector((s: RootState) => (s.diagram as any).history?.future.length > 0);
+  const nodes = useSelector((state: RootState) => state.diagram.nodes);
+  const edges = useSelector((state: RootState) => state.diagram.edges);
+  const canUndo = useSelector((state: RootState) => (state.diagram as any).history?.past.length > 0);
+  const canRedo = useSelector((state: RootState) => (state.diagram as any).history?.future.length > 0);
   const [showExport, setShowExport] = useState(false);
   const [exportText, setExportText] = useState('');
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState('');
-  const importErrors = useSelector((s: RootState) => s.diagram.ui.importErrors);
-  const keyboardEnabled = useSelector((s: RootState) => s.config?.keyboardEnabled ?? true);
+  const importErrors = useSelector((state: RootState) => state.diagram.ui.importErrors);
+  const keyboardEnabled = useSelector((state: RootState) => state.config?.keyboardEnabled ?? true);
 
-  const nodesById = useMemo(() => Object.fromEntries(nodes.map((n) => [n.id, n])), [nodes]);
+  const nodesById = useMemo(() => Object.fromEntries(nodes.map((nodeItem) => [nodeItem.id, nodeItem])), [nodes]);
 
   const svgElementRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,32 +69,32 @@ export default function Editor() {
   useKeyboardShortcuts({onDelete: keyboardEnabled ? () => dispatch(deleteSelected()) : undefined});
 
   const mapSvgRectToContainer = useCallback((rect: {x: number; y: number; w: number; h: number}) => {
-    const svg = svgElementRef.current;
-    const container = containerRef.current;
-    if (!svg || !container) return {left: rect.x, top: rect.y, width: rect.w, height: rect.h};
-    const ctm = svg.getScreenCTM();
-    const containerBox = container.getBoundingClientRect();
-    // Map top-left and bottom-right to screen coords, then to container-relative coords
-    const p1 = svg.createSVGPoint();
-    p1.x = rect.x;
-    p1.y = rect.y;
-    const p2 = svg.createSVGPoint();
-    p2.x = rect.x + rect.w;
-    p2.y = rect.y + rect.h;
+    const svgElement = svgElementRef.current;
+    const containerElement = containerRef.current;
+    if (!svgElement || !containerElement) return {left: rect.x, top: rect.y, width: rect.w, height: rect.h};
+    const screenCtm = svgElement.getScreenCTM();
+    const containerBox = containerElement.getBoundingClientRect();
+    // Map top-left and bottom-right to screen coords, then to containerElement-relative coords
+    const topLeftSvgPoint = svgElement.createSVGPoint();
+    topLeftSvgPoint.x = rect.x;
+    topLeftSvgPoint.y = rect.y;
+    const bottomRightSvgPoint = svgElement.createSVGPoint();
+    bottomRightSvgPoint.x = rect.x + rect.w;
+    bottomRightSvgPoint.y = rect.y + rect.h;
     // jsdom may return null for CTM; fall back to raw rect
-    if (!ctm) {
+    if (!screenCtm) {
       const left = Math.round(rect.x - containerBox.left);
       const top = Math.round(rect.y - containerBox.top);
       const width = Math.round(rect.w);
       const height = Math.round(rect.h);
       return {left, top, width, height};
     }
-    const sp1 = p1.matrixTransform(ctm);
-    const sp2 = p2.matrixTransform(ctm);
-    const left = Math.round(sp1.x - containerBox.left);
-    const top = Math.round(sp1.y - containerBox.top);
-    const width = Math.round(sp2.x - sp1.x);
-    const height = Math.round(sp2.y - sp1.y);
+    const topLeftScreenPoint = topLeftSvgPoint.matrixTransform(screenCtm);
+    const bottomRightScreenPoint = bottomRightSvgPoint.matrixTransform(screenCtm);
+    const left = Math.round(topLeftScreenPoint.x - containerBox.left);
+    const top = Math.round(topLeftScreenPoint.y - containerBox.top);
+    const width = Math.round(bottomRightScreenPoint.x - topLeftScreenPoint.x);
+    const height = Math.round(bottomRightScreenPoint.y - topLeftScreenPoint.y);
     return {left, top, width, height};
   }, []);
 
@@ -151,8 +151,8 @@ export default function Editor() {
         >
           <GridPattern />
           {/* Edges below nodes for better z-index */}
-          {edges.map((e) => (
-            <EdgeView key={e.id} edge={e} nodes={nodesById} />
+          {edges.map((edgeItem) => (
+            <EdgeView key={edgeItem.id} edge={edgeItem} nodes={nodesById} />
           ))}
 
           {nodes.map((n) => (

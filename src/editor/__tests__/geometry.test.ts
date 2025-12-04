@@ -40,23 +40,23 @@ describe('geometry helpers', () => {
   it('anchors on node borders toward opposite center', () => {
     const src = task('a', 100, 100);
     const tgt = start('b', 300, 100);
-    const sc = getNodeCenter(src);
-    const tc = getNodeCenter(tgt);
-    const sa = getAnchorPointOnNodeBorder(src, tc);
-    const ta = getAnchorPointOnNodeBorder(tgt, sc);
+    const sourceCenter = getNodeCenter(src);
+    const targetCenter = getNodeCenter(tgt);
+    const sourceAnchor = getAnchorPointOnNodeBorder(src, targetCenter);
+    const targetAnchor = getAnchorPointOnNodeBorder(tgt, sourceCenter);
     // For a horizontal relation, source anchor should be on right edge of task and
     // target anchor on left side of the circle. Task width is dynamic; derive expected edge.
     const sb = getNodeBounds(src);
-    expect(sa.x).toBeCloseTo(sb.x + sb.w, 3);
-    expect(ta.x).toBeLessThan(tc.x); // left side of circle
+    expect(sourceAnchor.x).toBeCloseTo(sb.x + sb.w, 3);
+    expect(targetAnchor.x).toBeLessThan(targetCenter.x); // left side of circle
   });
 
   it('detects segment obstruction by rectangle obstacle', () => {
-    const a: Point = {x: 0, y: 0};
+    const pointA: Point = {x: 0, y: 0};
     const b: Point = {x: 100, y: 0};
     const rect: Obstacle = {kind: 'rect', x: 40, y: -10, w: 20, h: 20};
-    expect(clearSegment(a, b, [rect])).toBe(false);
-    expect(clearSegment(a, b, [])).toBe(true);
+    expect(clearSegment(pointA, b, [rect])).toBe(false);
+    expect(clearSegment(pointA, b, [])).toBe(true);
   });
 
   it('routes around a rectangular obstacle using L or dogleg', () => {

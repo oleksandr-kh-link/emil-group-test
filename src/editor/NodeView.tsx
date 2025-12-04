@@ -20,19 +20,19 @@ interface Props {
 }
 
 function isEditableEventTarget(target: EventTarget | null): boolean {
-  const el = target as HTMLElement | null;
-  if (!el) return false;
-  const tag = el.tagName?.toLowerCase();
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
-  if (el.isContentEditable) return true;
-  if (typeof el.closest === 'function' && el.closest('[contenteditable="true"]')) return true;
+  const element = target as HTMLElement | null;
+  if (!element) return false;
+  const tagNameLower = element.tagName?.toLowerCase();
+  if (tagNameLower === 'input' || tagNameLower === 'textarea' || tagNameLower === 'select') return true;
+  if (element.isContentEditable) return true;
+  if (typeof element.closest === 'function' && element.closest('[contenteditable="true"]')) return true;
   return false;
 }
 
 function NodeViewImpl({node, onRequestExternalEdit, externallyEditingNodeId}: Props) {
   const dispatch = useDispatch();
-  const isSelected = useSelector((s: RootState) => s.diagram.selection.nodeIds.includes(node.id));
-  const {toolMode, pendingConnectionFrom} = useSelector((s: RootState) => s.diagram.ui);
+  const isSelected = useSelector((state: RootState) => state.diagram.selection.nodeIds.includes(node.id));
+  const {toolMode, pendingConnectionFrom} = useSelector((state: RootState) => state.diagram.ui);
   const [isEditing, setEditing] = useState(false);
   const [editingBounds, setEditingBounds] = useState<{w: number; h: number} | null>(null);
   const groupRef = useRef<SVGGElement>(null);
@@ -132,8 +132,8 @@ function NodeViewImpl({node, onRequestExternalEdit, externallyEditingNodeId}: Pr
               fill="#ffffff"
               style={{userSelect: 'none', pointerEvents: 'auto', whiteSpace: 'pre'}}
             >
-              {lines.map((line, idx) => (
-                <tspan key={idx} x={positionX + width / 2} dy={idx === 0 ? 0 : lineHeight}>
+              {lines.map((line, lineIndex) => (
+                <tspan key={lineIndex} x={positionX + width / 2} dy={lineIndex === 0 ? 0 : lineHeight}>
                   {line || ' '}
                 </tspan>
               ))}

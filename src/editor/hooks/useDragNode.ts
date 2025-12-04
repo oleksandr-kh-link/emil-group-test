@@ -22,28 +22,28 @@ export function useDragNode({svgRef, nodes, nodesById, onSelectNode, onMoveNode,
   const clientToSvg = useCallback((clientX: number, clientY: number): Point => {
     const svg = svgRef.current;
     if (!svg) return {x: clientX, y: clientY};
-    const pt = svg.createSVGPoint();
-    pt.x = clientX;
-    pt.y = clientY;
-    const sp = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-    return {x: sp.x, y: sp.y};
+    const svgPointInput = svg.createSVGPoint();
+    svgPointInput.x = clientX;
+    svgPointInput.y = clientY;
+    const transformedSvgPoint = svgPointInput.matrixTransform(svg.getScreenCTM()?.inverse());
+    return {x: transformedSvgPoint.x, y: transformedSvgPoint.y};
   }, [svgRef]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const p = clientToSvg(e.clientX, e.clientY);
-    const hit = getTopmostHitNode(p, nodes);
-    if (hit) {
-      const node = nodesById[hit.id];
-      if (onDragStart) onDragStart(hit.id);
-      setDragState({id: hit.id, offset: {x: p.x - node.position.x, y: p.y - node.position.y}});
-      onSelectNode(hit.id);
+    const svgPoint = clientToSvg(e.clientX, e.clientY);
+    const hitNodeResult = getTopmostHitNode(svgPoint, nodes);
+    if (hitNodeResult) {
+      const node = nodesById[hitNodeResult.id];
+      if (onDragStart) onDragStart(hitNodeResult.id);
+      setDragState({id: hitNodeResult.id, offset: {x: svgPoint.x - node.position.x, y: svgPoint.y - node.position.y}});
+      onSelectNode(hitNodeResult.id);
     }
   }, [clientToSvg, nodes, nodesById, onSelectNode, onDragStart]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragState) return;
-    const p = clientToSvg(e.clientX, e.clientY);
-    const newPosition = {x: p.x - dragState.offset.x, y: p.y - dragState.offset.y};
+    const svgPointCurrent = clientToSvg(e.clientX, e.clientY);
+    const newPosition = {x: svgPointCurrent.x - dragState.offset.x, y: svgPointCurrent.y - dragState.offset.y};
     onMoveNode(dragState.id, newPosition);
   }, [clientToSvg, dragState, onMoveNode]);
 
