@@ -2,7 +2,7 @@
   "name": "emil-group-test",
   "version": "1.0.0",
   "description": "React + TypeScript + Redux app powered by Vite",
-  "private": true,
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
