@@ -6,13 +6,16 @@ import GridPattern from './components/GridPattern';
 import ImportModal from './components/ImportModal';
 import {
   addNode,
+  captureHistorySnapshot,
   clearSelection,
   deleteSelected,
   loadDiagram,
   moveNode,
+  redo,
   selectNode,
   setImportErrors,
   setNodeLabel,
+  undo,
 } from './diagramSlice';
 import EdgeView from './EdgeView';
 import {TASK_FONT_FAMILY, TASK_FONT_SIZE_PX, TASK_LINE_HEIGHT_PX, TEXTAREA_PADDING_PX} from './geometry';
@@ -28,6 +31,8 @@ export default function Editor() {
   const dispatch = useDispatch();
   const nodes = useSelector((s: RootState) => s.diagram.nodes);
   const edges = useSelector((s: RootState) => s.diagram.edges);
+  const canUndo = useSelector((s: RootState) => (s.diagram as any).history?.past.length > 0);
+  const canRedo = useSelector((s: RootState) => (s.diagram as any).history?.future.length > 0);
   const [showExport, setShowExport] = useState(false);
   const [exportText, setExportText] = useState('');
   const [showImport, setShowImport] = useState(false);
@@ -58,6 +63,7 @@ export default function Editor() {
     nodesById,
     onSelectNode: (id) => dispatch(selectNode(id)),
     onMoveNode: (id, position) => dispatch(moveNode({id, position})),
+    onDragStart: () => dispatch(captureHistorySnapshot()),
   });
 
   useKeyboardShortcuts({onDelete: keyboardEnabled ? () => dispatch(deleteSelected()) : undefined});
@@ -99,6 +105,8 @@ export default function Editor() {
         <button onClick={() => dispatch(addNode('task', {x: 200, y: 80}))}>+ Task</button>
         <button onClick={() => dispatch(addNode('end', {x: 380, y: 80}))}>+ End</button>
         <button onClick={() => dispatch(deleteSelected())} style={{marginLeft: 12}}>Delete</button>
+        <button onClick={() => dispatch(undo())} disabled={!canUndo} title="Undo (⌘/Ctrl+Z)">Undo</button>
+        <button onClick={() => dispatch(redo())} disabled={!canRedo} title="Redo (⌘/Ctrl+Y)">Redo</button>
         <button
           style={{marginLeft: 'auto'}}
           onClick={async () => {

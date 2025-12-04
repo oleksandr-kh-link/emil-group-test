@@ -26,9 +26,19 @@ export interface UIState {
   editingNodeId?: string
 }
 
+export interface HistorySnapshot {
+  nodes: NodeModel[]
+  edges: EdgeModel[]
+  selection: SelectionState
+}
+
 export interface EditorState extends DiagramState {
   selection: SelectionState
   ui: UIState
+  history?: {
+    past: HistorySnapshot[]
+    future: HistorySnapshot[]
+  }
 }
 
 const initialState: EditorState = {
@@ -36,18 +46,43 @@ const initialState: EditorState = {
   edges: [],
   selection: {nodeIds: [], edgeIds: []},
   ui: {toolMode: 'select', importErrors: null},
+  history: {past: [], future: []},
 };
 
 const slice = createSlice({
   name: 'diagram',
   initialState,
   reducers: {
+    // History helpers
+    captureHistorySnapshot(state) {
+      pushHistory(state);
+      // Clear future on new user action per standard undo/redo semantics
+      if (state.history) state.history.future = [];
+    },
+    undo(state) {
+      if (!state.history || state.history.past.length === 0) return;
+      const past = state.history.past;
+      const snap = past[past.length - 1];
+      // Push current into future
+      state.history.future.push(makeSnapshot(state));
+      // Pop from past and restore
+      past.pop();
+      restoreSnapshot(state, snap);
+    },
+    redo(state) {
+      if (!state.history || state.history.future.length === 0) return;
+      // Push current into past
+      pushHistory(state);
+      const snap = state.history.future.pop()!;
+      restoreSnapshot(state, snap);
+    },
     addNode: {
       prepare: (type: NodeType, position: Point, label?: string, id?: string) => ({
         payload: {type, position, label, id},
       }),
       reducer(state, action: PayloadAction<{ type: NodeType; position: Point; label?: string; id?: string }>) {
         const {type, position, label, id} = action.payload;
+        pushHistoryAndClearFuture(state);
         const node: NodeModel = {
           id: id ?? `node_${generateRandomId()}`,
           type,
@@ -64,6 +99,7 @@ const slice = createSlice({
       if (node) node.position = position;
     },
     setNodeLabel(state, action: PayloadAction<{ id: string; label: string }>) {
+      pushHistoryAndClearFuture(state);
       const n = state.nodes.find((x) => x.id === action.payload.id);
       if (n) n.label = action.payload.label;
     },
@@ -83,12 +119,14 @@ const slice = createSlice({
         // ensure nodes exist
         if (!state.nodes.find((n) => n.id === source)) return;
         if (!state.nodes.find((n) => n.id === target)) return;
+        pushHistoryAndClearFuture(state);
         const edge: EdgeModel = {id: id ?? `edge_${generateRandomId()}`, source, target, label};
         state.edges.push(edge);
         state.selection = {nodeIds: [], edgeIds: [edge.id]};
       },
     },
     deleteSelected(state) {
+      pushHistoryAndClearFuture(state);
       const selectedNodeIdsToDelete = new Set(state.selection.nodeIds);
       const selectedEdgeIdsToDelete = new Set(state.selection.edgeIds);
       if (selectedNodeIdsToDelete.size > 0) {
@@ -113,7 +151,10 @@ const slice = createSlice({
       const to = action.payload;
       if (from && to && from !== to) {
         const exists = state.edges.some((e) => e.source === from && e.target === to);
-        if (!exists) state.edges.push({id: `edge_${generateRandomId()}`, source: from, target: to});
+        if (!exists) {
+          pushHistoryAndClearFuture(state);
+          state.edges.push({id: `edge_${generateRandomId()}`, source: from, target: to});
+        }
       }
       state.ui.toolMode = 'select';
       state.ui.pendingConnectionFrom = undefined;
@@ -158,6 +199,7 @@ const slice = createSlice({
       state.selection = {nodeIds: [], edgeIds: []};
     },
     loadDiagram(state, action: PayloadAction<{ nodes: NodeModel[]; edges: EdgeModel[] }>) {
+      pushHistoryAndClearFuture(state);
       state.nodes = action.payload.nodes;
       state.edges = action.payload.edges;
       state.selection = {nodeIds: [], edgeIds: []};
@@ -191,6 +233,9 @@ function generateRandomId(): string {
 }
 
 export const {
+  captureHistorySnapshot,
+  undo,
+  redo,
   addNode,
   moveNode,
   setNodeLabel,
@@ -214,3 +259,36 @@ export const {
 } = slice.actions;
 
 export default slice.reducer;
+
+// Helpers
+function makeSnapshot(state: EditorState): HistorySnapshot {
+  // Only need nodes, edges, selection for undo/redo
+  return {
+    nodes: state.nodes.map((n) => ({...n, position: {...n.position}})),
+    edges: state.edges.map((e) => ({...e})),
+    selection: {nodeIds: [...state.selection.nodeIds], edgeIds: [...state.selection.edgeIds]},
+  };
+}
+
+const HISTORY_LIMIT = 10;
+
+function pushHistory(state: EditorState) {
+  if (!state.history) state.history = {past: [], future: []};
+  state.history.past.push(makeSnapshot(state));
+  if (state.history.past.length > HISTORY_LIMIT) {
+    // drop oldest
+    state.history.past.splice(0, state.history.past.length - HISTORY_LIMIT);
+  }
+}
+
+function pushHistoryAndClearFuture(state: EditorState) {
+  pushHistory(state);
+  if (state.history) state.history.future = [];
+}
+
+function restoreSnapshot(state: EditorState, snap: HistorySnapshot) {
+  state.nodes = snap.nodes.map((n) => ({...n, position: {...n.position}}));
+  state.edges = snap.edges.map((e) => ({...e}));
+  state.selection = {nodeIds: [...snap.selection.nodeIds], edgeIds: [...snap.selection.edgeIds]};
+  state.ui.pendingConnectionFrom = undefined;
+}

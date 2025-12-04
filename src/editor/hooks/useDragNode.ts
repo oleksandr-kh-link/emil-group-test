@@ -10,9 +10,10 @@ export interface UseDragNodeOptions {
   nodesById: Record<string, NodeModel>
   onSelectNode: (id: string) => void
   onMoveNode: (id: string, position: Point) => void
+  onDragStart?: (id: string) => void
 }
 
-export function useDragNode({svgRef, nodes, nodesById, onSelectNode, onMoveNode}: UseDragNodeOptions) {
+export function useDragNode({svgRef, nodes, nodesById, onSelectNode, onMoveNode, onDragStart}: UseDragNodeOptions) {
   const [dragState, setDragState] = useState<
     | { id: string; offset: { x: number; y: number } }
     | undefined
@@ -33,10 +34,11 @@ export function useDragNode({svgRef, nodes, nodesById, onSelectNode, onMoveNode}
     const hit = getTopmostHitNode(p, nodes);
     if (hit) {
       const node = nodesById[hit.id];
+      if (onDragStart) onDragStart(hit.id);
       setDragState({id: hit.id, offset: {x: p.x - node.position.x, y: p.y - node.position.y}});
       onSelectNode(hit.id);
     }
-  }, [clientToSvg, nodes, nodesById, onSelectNode]);
+  }, [clientToSvg, nodes, nodesById, onSelectNode, onDragStart]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!dragState) return;
