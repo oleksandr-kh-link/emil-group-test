@@ -7318,19 +7318,19 @@ const {
   moveNode: um,
   setNodeLabel: sm,
   selectNode: Bi,
-  addEdge: Fm,
+  addEdge: Dm,
   deleteSelected: ya,
-  setToolMode: Um,
+  setToolMode: Fm,
   startConnectionFrom: am,
   completeConnectionTo: cm,
   setHoveredNode: ma,
   setHoveredEdge: va,
   setImportErrors: Vr,
-  setLastError: Am,
-  startBoxSelect: $m,
-  updateBoxSelect: Bm,
-  commitBoxSelect: Vm,
-  setEditingNodeId: Wm,
+  setLastError: Um,
+  startBoxSelect: Am,
+  updateBoxSelect: $m,
+  commitBoxSelect: Bm,
+  setEditingNodeId: Vm,
   selectEdge: ga,
   clearSelection: fm,
   loadDiagram: ld
@@ -7933,40 +7933,57 @@ const fd = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     }
   }
 }), {
-  setReadOnly: Hm,
-  setTheme: Qm,
-  setKeyboardEnabled: Km,
-  setObstaclePadding: Ym,
-  setAllowDoglegs: Xm
+  setReadOnly: Wm,
+  setTheme: Hm,
+  setKeyboardEnabled: Qm,
+  setObstaclePadding: Km,
+  setAllowDoglegs: Ym
 } = dd.actions, Lm = dd.reducer, Mn = Yy({
   reducer: {
     config: Lm,
     diagram: dm
   }
-}), jm = "*,*:before,*:after{box-sizing:border-box}html,body,#root{height:100%}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial,sans-serif;background:linear-gradient(180deg,#0f172a,#111827);color:#e5e7eb;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}button{-webkit-appearance:none;-moz-appearance:none;appearance:none;border:1px solid rgba(255,255,255,.15);background:#ffffff0f;color:#e5e7eb;padding:6px 12px;border-radius:8px;cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease}button:hover{background:#ffffff1f;border-color:#ffffff40}button:active{transform:translateY(1px)}button:focus-visible{outline:2px solid #6366f1;outline-offset:2px}input[type=number],input[type=text]{background:#ffffff0f;border:1px solid rgba(255,255,255,.15);color:#e5e7eb;border-radius:8px;padding:6px 10px}input[type=number]:focus-visible,input[type=text]:focus-visible{outline:2px solid #6366f1;outline-offset:2px}h1{color:#e5e7eb}.accent{color:#6366f1}[role=button]:focus-visible{outline:2px solid #6366f1;outline-offset:2px}";
-class Dm extends HTMLElement {
+});
+class jm extends HTMLElement {
   constructor() {
     super(...arguments), this.lastSelectionKey = "";
   }
   connectedCallback() {
-    const t = this.shadowRoot ?? this.attachShadow({ mode: "open" }), n = document.createElement("style");
-    n.textContent = `${jm}
-/* Ensure the host and mount container fill the allocated space */
+    const t = this.shadowRoot ?? this.attachShadow({ mode: "open" }), n = `/* Base shadow styles */
 :host { display: block; height: 100%; width: 100%; }
 .we-root { display: block; height: 100%; width: 100%; }
-`, t.appendChild(n), this.container = document.createElement("div"), this.container.className = "we-root", this.container.style.height = "100%", this.container.style.width = "100%", t.appendChild(this.container), this.root = $o.createRoot(this.container), this.root.render(
-      /* @__PURE__ */ E.jsx(La.StrictMode, { children: /* @__PURE__ */ E.jsx(iy, { store: Mn, children: /* @__PURE__ */ E.jsx(Im, {}) }) })
-    ), queueMicrotask(() => {
-      this.dispatchEvent(new CustomEvent("ready"));
-    }), this.unsubscribe = Mn.subscribe(() => {
-      const r = Mn.getState().diagram, l = `${r.selection.nodeIds.join(",")}|${r.selection.edgeIds.join(",")}`;
-      l !== this.lastSelectionKey && (this.lastSelectionKey = l, this.dispatchEvent(
+`, r = document.createElement("style");
+    r.textContent = n, t.appendChild(r);
+    try {
+      import("./global-CZ8wL65W.js").then((l) => {
+        if (l != null && l.default) {
+          const o = document.createElement("style");
+          o.textContent = String(l.default), t.appendChild(o);
+        }
+      }).catch(() => {
+      });
+    } catch {
+    }
+    this.container = document.createElement("div"), this.container.className = "we-root", this.container.style.height = "100%", this.container.style.width = "100%", t.appendChild(this.container);
+    try {
+      this.dispatchEvent(new CustomEvent("ready")), queueMicrotask(() => this.dispatchEvent(new CustomEvent("ready"))), setTimeout(() => this.dispatchEvent(new CustomEvent("ready")), 0);
+    } catch {
+    }
+    try {
+      this.root = $o.createRoot(this.container), this.root.render(
+        /* @__PURE__ */ E.jsx(La.StrictMode, { children: /* @__PURE__ */ E.jsx(iy, { store: Mn, children: /* @__PURE__ */ E.jsx(Im, {}) }) })
+      );
+    } catch {
+    }
+    this.unsubscribe = Mn.subscribe(() => {
+      const l = Mn.getState().diagram, o = `${l.selection.nodeIds.join(",")}|${l.selection.edgeIds.join(",")}`;
+      o !== this.lastSelectionKey && (this.lastSelectionKey = o, this.dispatchEvent(
         new CustomEvent("selectionchange", {
-          detail: { nodeIds: r.selection.nodeIds, edgeIds: r.selection.edgeIds }
+          detail: { nodeIds: l.selection.nodeIds, edgeIds: l.selection.edgeIds }
         })
       )), this.changeTimer && window.clearTimeout(this.changeTimer), this.changeTimer = window.setTimeout(() => {
-        const o = Wi({ nodes: r.nodes, edges: r.edges });
-        this.dispatchEvent(new CustomEvent("change", { detail: { json: o } }));
+        const i = Wi({ nodes: l.nodes, edges: l.edges });
+        this.dispatchEvent(new CustomEvent("change", { detail: { json: i } }));
       }, 200);
     });
   }
@@ -7989,8 +8006,8 @@ class Dm extends HTMLElement {
   }
 }
 const Ea = "workflow-editor";
-customElements.get(Ea) || customElements.define(Ea, Dm);
+customElements.get(Ea) || customElements.define(Ea, jm);
 export {
-  Dm as WorkflowEditorElement
+  jm as WorkflowEditorElement
 };
 //# sourceMappingURL=workflow-editor.es.js.map

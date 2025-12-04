@@ -31,7 +31,7 @@ class WorkflowEditorElement extends HTMLElement {
     try {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - vite query import at runtime
-      // eslint-disable-next-line no-new
+
       import('../styles/global.scss?inline').then((mod: any) => {
         if (mod?.default) {
           const extra = document.createElement('style');
@@ -56,7 +56,7 @@ class WorkflowEditorElement extends HTMLElement {
     try {
       this.dispatchEvent(new CustomEvent('ready'));
       queueMicrotask(() => this.dispatchEvent(new CustomEvent('ready')));
-      // eslint-disable-next-line no-restricted-globals
+
       setTimeout(() => this.dispatchEvent(new CustomEvent('ready')), 0);
     } catch {
       // ignore
