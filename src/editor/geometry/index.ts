@@ -7,10 +7,55 @@ export type Obstacle =
   | { kind: 'circle'; cx: number; cy: number; r: number };
 
 // Geometry helpers (pure)
+// Text/layout constants for Task nodes
+export const TASK_FONT_FAMILY = 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial';
+export const TASK_FONT_SIZE_PX = 14;
+export const TASK_LINE_HEIGHT_PX = 16;
+export const TASK_PADDING_PX = 15; // padding on each side for measured label layout
+// Editor (textarea) overlay visual tuning
+export const EDITOR_INSET_PX = 5; // distance from task border to editor box, each side
+export const TEXTAREA_PADDING_PX = 9; // CSS padding inside the textarea
+
+let measureCanvas: HTMLCanvasElement | undefined;
+function measureLineWidth(text: string): number {
+  if (typeof document === 'undefined') {
+    // Fallback in non-DOM envs: approximate width (8px per char)
+    return Math.max(1, text.length) * 8;
+  }
+  try {
+    if (!measureCanvas) measureCanvas = document.createElement('canvas');
+    const ctx = measureCanvas.getContext('2d');
+    if (!ctx) return Math.max(1, text.length) * 8;
+    ctx.font = `${TASK_FONT_SIZE_PX}px ${TASK_FONT_FAMILY}`;
+    const metrics = ctx.measureText(text);
+    return metrics.width;
+  } catch {
+    // JSDOM does not implement canvas getContext; approximate width
+    return Math.max(1, text.length) * 8;
+  }
+}
+
+// Size cache to avoid remeasuring unchanged labels
+const taskSizeCache = new Map<string, {w: number; h: number}>();
+function getTaskSize(label: string | undefined): {w: number; h: number} {
+  const key = label ?? '';
+  const cached = taskSizeCache.get(key);
+  if (cached) return cached;
+  const lines = (label ?? 'Task').toString().split('\n');
+  const maxLineWidth = lines.reduce((m, line) => Math.max(m, measureLineWidth(line)), 0);
+  const width = Math.ceil(maxLineWidth + TASK_PADDING_PX * 2);
+  const height = Math.ceil(lines.length * TASK_LINE_HEIGHT_PX + TASK_PADDING_PX * 2);
+  const size = {w: Math.max(width, 48), h: Math.max(height, 32)}; // enforce a minimal sensible size
+  taskSizeCache.set(key, size);
+  return size;
+}
+
 export function getNodeCenter(node: NodeModel): Point {
   switch (node.type) {
-    case 'task':
-      return {x: node.position.x + 70, y: node.position.y + 28};
+    case 'task': {
+      const {w, h} = getTaskSize(node.label);
+      return {x: node.position.x + w / 2, y: node.position.y + h / 2};
+    }
     case 'start':
     case 'end':
       return {x: node.position.x + 24, y: node.position.y + 24};
@@ -19,8 +64,10 @@ export function getNodeCenter(node: NodeModel): Point {
 
 export function getNodeBounds(node: NodeModel): RectBounds & { r: number } {
   switch (node.type) {
-    case 'task':
-      return {x: node.position.x, y: node.position.y, w: 140, h: 56, r: 0};
+    case 'task': {
+      const {w, h} = getTaskSize(node.label);
+      return {x: node.position.x, y: node.position.y, w, h, r: 0};
+    }
     case 'start':
     case 'end':
       return {x: node.position.x, y: node.position.y, w: 48, h: 48, r: 24};
@@ -29,8 +76,10 @@ export function getNodeBounds(node: NodeModel): RectBounds & { r: number } {
 
 export function getNodeBoundsForHitTest(node: NodeModel): RectBounds {
   switch (node.type) {
-    case 'task':
-      return {x: node.position.x, y: node.position.y, w: 140, h: 56};
+    case 'task': {
+      const {w, h} = getTaskSize(node.label);
+      return {x: node.position.x, y: node.position.y, w, h};
+    }
     case 'start':
     case 'end':
       return {x: node.position.x, y: node.position.y, w: 48, h: 48};

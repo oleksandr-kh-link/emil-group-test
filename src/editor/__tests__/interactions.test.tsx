@@ -20,7 +20,7 @@ describe('Node interactions', () => {
     store.dispatch(addNode('task', {x: 200, y: 20}, 'Task B', 'n2'));
   });
 
-  it('edits task label inline and commits with Enter', () => {
+  it('edits task label with newline on Enter and commits on blur', () => {
     render(
         <Provider store={store}>
           <svg>
@@ -35,14 +35,16 @@ describe('Node interactions', () => {
     const label = screen.getByText('Task A');
     fireEvent.doubleClick(label);
 
-    // Input should appear; change value and press Enter to commit
-    const input = screen.getByDisplayValue('Task A') as HTMLInputElement;
-    fireEvent.change(input, {target: {value: 'Renamed Task'}});
-    fireEvent.keyDown(input, {key: 'Enter'});
+    // Textarea should appear; type line 1, press Enter to insert newline, type line 2, then blur to commit
+    const textarea = screen.getByDisplayValue('Task A') as HTMLTextAreaElement;
+    fireEvent.change(textarea, {target: {value: 'Line 1'}});
+    fireEvent.keyDown(textarea, {key: 'Enter'}); // should insert a newline rather than commit
+    fireEvent.change(textarea, {target: {value: 'Line 1\nLine 2'}});
+    fireEvent.blur(textarea);
 
-    // State should be updated
+    // State should be updated with a newline preserved
     const state = store.getState().diagram;
-    expect(state.nodes.find((n) => n.id === 'n1')!.label).toBe('Renamed Task');
+    expect(state.nodes.find((n) => n.id === 'n1')!.label).toBe('Line 1\nLine 2');
   });
 
   it('connects two nodes by starting from n1 then completing to n2 (reducer-backed)', async () => {

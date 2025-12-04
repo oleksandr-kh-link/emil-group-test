@@ -23,13 +23,18 @@ function start(id: string, x: number, y: number, label?: string): NodeModel {
 }
 
 describe('geometry helpers', () => {
-  it('computes centers and bounds correctly', () => {
+  it('computes centers and bounds correctly (dynamic for task, fixed for circle)', () => {
     const n1 = task('n1', 100, 200);
     const n2 = start('n2', 300, 400);
-    expect(getNodeCenter(n1)).toEqual({x: 170, y: 228});
+    const b1 = getNodeBounds(n1);
+    const b2 = getNodeBounds(n2);
+    // Task size is dynamic; ensure positive and center derived from bounds
+    expect(b1.w).toBeGreaterThan(0);
+    expect(b1.h).toBeGreaterThan(0);
+    expect(getNodeCenter(n1)).toEqual({x: b1.x + b1.w / 2, y: b1.y + b1.h / 2});
+    // Start node has fixed bounds and radius
+    expect(b2).toMatchObject({x: 300, y: 400, w: 48, h: 48, r: 24});
     expect(getNodeCenter(n2)).toEqual({x: 324, y: 424});
-    expect(getNodeBounds(n1)).toMatchObject({x: 100, y: 200, w: 140, h: 56});
-    expect(getNodeBounds(n2)).toMatchObject({x: 300, y: 400, w: 48, h: 48, r: 24});
   });
 
   it('anchors on node borders toward opposite center', () => {
@@ -40,8 +45,9 @@ describe('geometry helpers', () => {
     const sa = getAnchorPointOnNodeBorder(src, tc);
     const ta = getAnchorPointOnNodeBorder(tgt, sc);
     // For a horizontal relation, source anchor should be on right edge of task and
-    // target anchor on left side of the circle.
-    expect(sa.x).toBeCloseTo(240, 3); // 100 + width(140)
+    // target anchor on left side of the circle. Task width is dynamic; derive expected edge.
+    const sb = getNodeBounds(src);
+    expect(sa.x).toBeCloseTo(sb.x + sb.w, 3);
     expect(ta.x).toBeLessThan(tc.x); // left side of circle
   });
 

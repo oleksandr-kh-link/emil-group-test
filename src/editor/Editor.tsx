@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import ExportModal from './components/ExportModal';
@@ -12,8 +12,10 @@ import {
   moveNode,
   selectNode,
   setImportErrors,
+  setNodeLabel,
 } from './diagramSlice';
 import EdgeView from './EdgeView';
+import {TASK_FONT_FAMILY, TASK_FONT_SIZE_PX, TASK_LINE_HEIGHT_PX, TEXTAREA_PADDING_PX} from './geometry';
 import {useDragNode} from './hooks/useDragNode';
 import {useKeyboardShortcuts} from './hooks/useKeyboardShortcuts';
 import NodeView from './NodeView';
@@ -36,6 +38,17 @@ export default function Editor() {
   const nodesById = useMemo(() => Object.fromEntries(nodes.map((n) => [n.id, n])), [nodes]);
 
   const svgElementRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Inline editor overlay state (HTML textarea rendered above SVG for all browsers)
+  const [activeEdit, setActiveEdit] = useState<
+    | {
+        nodeId: string;
+        initialText: string;
+        svgRect: {x: number; y: number; w: number; h: number}; // inner rect (minus padding)
+      }
+    | null
+  >(null);
 
   const handleBackgroundClick = () => dispatch(clearSelection());
 
@@ -48,6 +61,36 @@ export default function Editor() {
   });
 
   useKeyboardShortcuts({onDelete: keyboardEnabled ? () => dispatch(deleteSelected()) : undefined});
+
+  const mapSvgRectToContainer = useCallback((rect: {x: number; y: number; w: number; h: number}) => {
+    const svg = svgElementRef.current;
+    const container = containerRef.current;
+    if (!svg || !container) return {left: rect.x, top: rect.y, width: rect.w, height: rect.h};
+    const ctm = svg.getScreenCTM();
+    const containerBox = container.getBoundingClientRect();
+    // Map top-left and bottom-right to screen coords, then to container-relative coords
+    const p1 = svg.createSVGPoint();
+    p1.x = rect.x;
+    p1.y = rect.y;
+    const p2 = svg.createSVGPoint();
+    p2.x = rect.x + rect.w;
+    p2.y = rect.y + rect.h;
+    // jsdom may return null for CTM; fall back to raw rect
+    if (!ctm) {
+      const left = Math.round(rect.x - containerBox.left);
+      const top = Math.round(rect.y - containerBox.top);
+      const width = Math.round(rect.w);
+      const height = Math.round(rect.h);
+      return {left, top, width, height};
+    }
+    const sp1 = p1.matrixTransform(ctm);
+    const sp2 = p2.matrixTransform(ctm);
+    const left = Math.round(sp1.x - containerBox.left);
+    const top = Math.round(sp1.y - containerBox.top);
+    const width = Math.round(sp2.x - sp1.x);
+    const height = Math.round(sp2.y - sp1.y);
+    return {left, top, width, height};
+  }, []);
 
   return (
     <div style={{display: 'grid', gridTemplateRows: '40px 1fr', height: '100%'}}>
@@ -88,25 +131,79 @@ export default function Editor() {
           </ul>
         </div>
       )}
-      <svg
-        ref={svgElementRef}
-        width="100%"
-        height="100%"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={handleBackgroundClick}
-      >
-        <GridPattern />
-        {/* Edges below nodes for better z-index */}
-        {edges.map((e) => (
-          <EdgeView key={e.id} edge={e} nodes={nodesById} />
-        ))}
+      <div ref={containerRef} style={{position: 'relative', width: '100%', height: '100%'}}>
+        <svg
+          ref={svgElementRef}
+          width="100%"
+          height="100%"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onClick={handleBackgroundClick}
+        >
+          <GridPattern />
+          {/* Edges below nodes for better z-index */}
+          {edges.map((e) => (
+            <EdgeView key={e.id} edge={e} nodes={nodesById} />
+          ))}
 
-        {nodes.map((n) => (
-          <NodeView key={n.id} node={n} />
-        ))}
-      </svg>
+          {nodes.map((n) => (
+            <NodeView
+              key={n.id}
+              node={n}
+              // Always use external overlay editor for consistency across browsers
+              onRequestExternalEdit={(payload) => setActiveEdit(payload)}
+              externallyEditingNodeId={activeEdit?.nodeId}
+            />
+          ))}
+        </svg>
+
+        {/* HTML overlay editor (active on all browsers) */}
+        {activeEdit && (() => {
+          const {left, top, width, height} = mapSvgRectToContainer(activeEdit.svgRect);
+          return (
+            <textarea
+              aria-label="Edit task name"
+              autoFocus
+              defaultValue={activeEdit.initialText}
+              onBlur={(e) => {
+                dispatch(setNodeLabel({id: activeEdit.nodeId, label: e.currentTarget.value}));
+                setActiveEdit(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setActiveEdit(null);
+                }
+              }}
+              style={{
+                position: 'absolute',
+                left,
+                top,
+                width,
+                height,
+                display: 'block',
+                margin: 0,
+                minHeight: height,
+                resize: 'vertical',
+                background: 'rgba(255,255,255,0.06)',
+                color: 'white',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: 6,
+                padding: `${TEXTAREA_PADDING_PX}px`,
+                lineHeight: `${TASK_LINE_HEIGHT_PX}px`,
+                fontSize: `${TASK_FONT_SIZE_PX}px`,
+                fontFamily: TASK_FONT_FAMILY,
+                whiteSpace: 'pre-wrap',
+                overflow: 'auto',
+                boxSizing: 'border-box',
+                // ensure overlay receives events only while visible
+                pointerEvents: 'auto',
+              }}
+            />
+          );
+        })()}
+      </div>
 
       {/* Export JSON Modal */}
       <ExportModal show={showExport} text={exportText} onClose={() => setShowExport(false)} />
