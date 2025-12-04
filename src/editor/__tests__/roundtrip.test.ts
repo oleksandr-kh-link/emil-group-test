@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 
 import {exportToExampleJson, safeImportFromExampleJson} from '../types';
+
 import type {DiagramState} from '../types';
 
 describe('JSON round-trip', () => {

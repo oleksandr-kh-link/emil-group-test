@@ -11,6 +11,7 @@ import {
   toPath,
   type Obstacle,
 } from '../geometry';
+
 import type {NodeModel, Point} from '../types';
 
 function task(id: string, x: number, y: number, label?: string): NodeModel {

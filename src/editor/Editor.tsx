@@ -2,8 +2,8 @@ import React, {useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import ExportModal from './components/ExportModal';
-import ImportModal from './components/ImportModal';
 import GridPattern from './components/GridPattern';
+import ImportModal from './components/ImportModal';
 import {
   addNode,
   clearSelection,

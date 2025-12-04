@@ -1,8 +1,8 @@
-import {beforeEach, describe, expect, it} from 'vitest';
 import {configureStore} from '@reduxjs/toolkit';
 import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
+import {beforeEach, describe, expect, it} from 'vitest';
 
 import diagramReducer, {addEdge, addNode} from '../diagramSlice';
 import EdgeView from '../EdgeView';
