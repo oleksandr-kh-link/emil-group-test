@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Editor – IIFE usage</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #app { height: 100%; display: grid; grid-template-rows: 42px 1fr; }
+      header { padding: 8px 12px; background: #0b1020; color: #e5e7eb; font-family: ui-sans-serif, system-ui; }
+      main { height: 100%; }
+      workflow-editor { display: block; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>Workflow Editor – IIFE example</header>
+      <main>
+        <div style="display:flex;gap:8px;align-items:center;padding:8px 0;color:#e5e7eb;font-family:ui-sans-serif,system-ui">
+          <button id="btnExport">Export JSON (console)</button>
+          <button id="btnImport">Import sample</button>
+          <button id="btnImportInvalid">Import invalid (show error)</button>
+          <span id="status" aria-live="polite" style="margin-left:12px;color:#fecaca"></span>
+        </div>
+        <workflow-editor id="we"></workflow-editor>
+      </main>
+    </div>
+
+    <!-- Use the IIFE bundle built by: npm run build:wc -->
+    <script src="../dist/workflow-editor.iife.js"></script>
+    <script>
+      const el = document.getElementById('we');
+      const status = document.getElementById('status');
+      const sample = {
+          definitions: {
+            $type: 'bpmn:Definitions',
+            id: 'Definitions_1',
+            targetNamespace: 'bpmn.io',
+            rootElements: [
+              {
+                $type: 'bpmn:Process',
+                id: 'Process_1',
+                isExecutable: false,
+                name: 'Workflow',
+                flowElements: [
+                  { $type: 'bpmn:StartEvent', id: 'Start_1', name: 'Start', x: 100, y: 120 },
+                  { $type: 'bpmn:UserTask', id: 'Task_1', name: 'Do Work', x: 260, y: 108 },
+                  { $type: 'bpmn:EndEvent', id: 'End_1', name: 'End', x: 480, y: 120 },
+                  { $type: 'bpmn:SequenceFlow', id: 'Flow_1', sourceRef: 'Start_1', targetRef: 'Task_1' },
+                  { $type: 'bpmn:SequenceFlow', id: 'Flow_2', sourceRef: 'Task_1', targetRef: 'End_1' },
+                ],
+              },
+            ],
+          },
+        };
+
+      el.addEventListener('ready', () => {
+        el.setJSON(sample);
+      });
+
+      el.addEventListener('change', (e) => {
+        // console.log('diagram changed', e.detail.json);
+      });
+      el.addEventListener('selectionchange', (e) => {
+        // console.log('selection', e.detail);
+      });
+      el.addEventListener('error', (e) => {
+        const msg = e.detail?.details || e.detail?.message || 'Unknown error';
+        status.textContent = msg;
+        setTimeout(() => (status.textContent = ''), 4000);
+      });
+
+      document.getElementById('btnExport').addEventListener('click', () => {
+        const json = el.getJSON();
+        console.log('Exported JSON', json);
+      });
+      document.getElementById('btnImport').addEventListener('click', () => {
+        el.setJSON(sample);
+      });
+      document.getElementById('btnImportInvalid').addEventListener('click', () => {
+        el.setJSON({ foo: 'bar' }); // triggers error event with validation details
+      });
+    </script>
+  </body>
+  </html>

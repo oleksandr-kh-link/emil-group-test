@@ -1,0 +1,66 @@
+{
+  "definitions": {
+    "$type": "bpmn:Definitions",
+    "id": "Definitions_1",
+    "targetNamespace": "bpmn.io",
+    "rootElements": [
+      {
+        "$type": "bpmn:Process",
+        "id": "Process_1",
+        "isExecutable": false,
+        "name": "Workflow",
+        "flowElements": [
+          {
+            "$type": "bpmn:StartEvent",
+            "id": "node_8u9ayc1d",
+            "name": "Start",
+            "x": 475,
+            "y": 55
+          },
+          {
+            "$type": "bpmn:UserTask",
+            "id": "node_1p8jjw41",
+            "name": "Task",
+            "x": 425,
+            "y": 175
+          },
+          {
+            "$type": "bpmn:UserTask",
+            "id": "node_1wkm3c1o",
+            "name": "Task",
+            "x": 427,
+            "y": 290
+          },
+          {
+            "$type": "bpmn:EndEvent",
+            "id": "node_e5bk6rxg",
+            "name": "End",
+            "x": 476,
+            "y": 418
+          },
+          {
+            "$type": "bpmn:SequenceFlow",
+            "id": "edge_hnjrtu1v",
+            "sourceRef": "node_8u9ayc1d",
+            "targetRef": "node_1p8jjw41",
+            "name": ""
+          },
+          {
+            "$type": "bpmn:SequenceFlow",
+            "id": "edge_zalss6kl",
+            "sourceRef": "node_1p8jjw41",
+            "targetRef": "node_1wkm3c1o",
+            "name": ""
+          },
+          {
+            "$type": "bpmn:SequenceFlow",
+            "id": "edge_ycmxrlba",
+            "sourceRef": "node_1wkm3c1o",
+            "targetRef": "node_e5bk6rxg",
+            "name": ""
+          }
+        ]
+      }
+    ]
+  }
+}

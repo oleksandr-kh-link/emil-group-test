@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Editor – ES module usage</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body { background: #0b1020; }
+      workflow-editor { display: block; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <workflow-editor id="we"></workflow-editor>
+
+    <script type="module">
+      import '../dist/workflow-editor.es.js';
+      const el = document.getElementById('we');
+      el.addEventListener('ready', () => {
+        el.setJSON({
+          definitions: {
+            $type: 'bpmn:Definitions',
+            id: 'Definitions_1',
+            targetNamespace: 'bpmn.io',
+            rootElements: [
+              {
+                $type: 'bpmn:Process',
+                id: 'Process_1',
+                isExecutable: false,
+                name: 'Workflow',
+                flowElements: [
+                  { $type: 'bpmn:StartEvent', id: 'Start_1', name: 'Start', x: 120, y: 120 },
+                  { $type: 'bpmn:UserTask', id: 'Task_1', name: 'Task', x: 280, y: 108 },
+                  { $type: 'bpmn:EndEvent', id: 'End_1', name: 'End', x: 500, y: 120 },
+                  { $type: 'bpmn:SequenceFlow', id: 'F1', sourceRef: 'Start_1', targetRef: 'Task_1' },
+                  { $type: 'bpmn:SequenceFlow', id: 'F2', sourceRef: 'Task_1', targetRef: 'End_1' },
+                ],
+              },
+            ],
+          },
+        });
+      });
+    </script>
+  </body>
+  </html>
