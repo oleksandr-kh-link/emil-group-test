@@ -17,6 +17,7 @@ import EdgeView from './EdgeView';
 import {useDragNode} from './hooks/useDragNode';
 import {useKeyboardShortcuts} from './hooks/useKeyboardShortcuts';
 import NodeView from './NodeView';
+import {exportToExampleJson, safeImportFromExampleJson} from './types';
 
 import type {RootState} from '../store';
 // no direct NodeModel usage here
@@ -118,7 +119,6 @@ export default function Editor() {
           setImportText(text);
           try {
             const json = JSON.parse(text);
-            const {safeImportFromExampleJson} = await import('./types');
             const mapped = safeImportFromExampleJson(json);
             dispatch(loadDiagram(mapped));
             dispatch(setImportErrors(null));
@@ -145,7 +145,6 @@ async function buildExportText(
     nodes: RootState['diagram']['nodes'],
     edges: RootState['diagram']['edges'],
 ): Promise<string> {
-  const {exportToExampleJson} = await import('./types');
   const json = exportToExampleJson({nodes, edges});
   return JSON.stringify(json, null, 2);
 }
